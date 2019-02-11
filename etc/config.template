@@ -1,0 +1,5 @@
+MDE_HC_SSH_PORT=22
+MDE_HC_SSH_ID_RSA=/root/.ssh/id_rsa
+
+MDE_HC_WAZUH_HOST=my_wazuh_server
+MDE_HC_WAZUH_NAME=my_wazuh_conatiner_name

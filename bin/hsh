@@ -1,0 +1,9 @@
+#!/bin/bash
+
+. /opt/hc/etc/config
+
+HOST="$1"
+shift
+
+ssh -p ${MDE_HC_SSH_PORT}  -i ${MDE_HC_SSH_ID_RSA} ${HOST} "$*"
+

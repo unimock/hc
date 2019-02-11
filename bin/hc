@@ -1,0 +1,59 @@
+#!/bin/bash
+
+. /opt/hc/etc/config
+
+GROUP="default"
+
+if [ "$1" = "" ] ; then
+  echo ""
+  echo "usage: `basename $0` [-g <group>] ls"
+  echo ""
+  echo "             ls ............. list wazuh hosts"
+  echo "             login <host> ... ssh login"
+  echo ''
+  echo "  `basename $0` -g ws  ls"
+  echo "  `basename $0` -g vms ls"
+  echo "  `basename $0` login monitor"
+  echo ""
+  exit 0
+fi
+
+
+CURROPT=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -v)  VERB="1"           ; shift 1 ;;
+    -g)  GROUP="$2"         ; shift 2 ;;
+    *)   CURROPT="$CURROPT \"$1\"" ; shift 1 ;;
+  esac
+done
+eval set -- $CURROPT
+
+CMD=$1 ; shift
+
+if [ "$CMD" = "login" ] ; then
+  ssh -p ${MDE_HC_SSH_PORT} -i ${MDE_HC_SSH_ID_RSA} $1
+  exit $?
+fi
+
+
+list=$( wazuh var/ossec/bin/agent_groups -l  -q -g $GROUP | grep "ID:"  | awk '{ print $4 }' )
+for i in $list ; do
+  i=${i%.}
+  timeout 0.1 ping -c1 $i >/dev/null 2>&1 
+  if [ "$?" != "0" ] ; then
+    echo "# $i (offline)"
+    continue
+  fi
+  if [ "$CMD" = "ls" ] ; then
+    echo "$i"
+  fi
+  if [ "$CMD" = "cmd" ] ; then
+    echo "#"
+    echo "# login in $i ... "
+    echo "#"    
+    ssh -p ${MDE_HC_SSH_PORT} -i ${MDE_HC_SSH_ID_RSA} $i "$*"
+  fi
+done
+
+

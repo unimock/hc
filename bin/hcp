@@ -1,0 +1,6 @@
+#!/bin/bash
+
+. /opt/hc/etc/config
+
+scp -P ${MDE_HC_SSH_PORT}  -i ${MDE_HC_SSH_ID_RSA} "$*"
+

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. /opt/hc/etc/config
+
+dc -h ${MDE_HC_WAZUH_HOST} docker exec -it ${MDE_HC_WAZUH_NAME} "$*" 
