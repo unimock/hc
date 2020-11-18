@@ -42,11 +42,11 @@ for i in $list ; do
   i=${i%.}
   timeout 0.1 ping -c1 $i >/dev/null 2>&1 
   if [ "$?" != "0" ] ; then
-    echo "# $i (offline)"
+    #echo "#$i"
     continue
   fi
   if [ "$CMD" = "ls" ] ; then
-    echo "$i"
+    echo -n "$i "
   fi
   if [ "$CMD" = "cmd" ] ; then
     echo "#"
@@ -55,5 +55,6 @@ for i in $list ; do
     ssh -p ${MDE_HC_SSH_PORT} -i ${MDE_HC_SSH_ID_RSA} $i "$*"
   fi
 done
+echo ""
 
 
