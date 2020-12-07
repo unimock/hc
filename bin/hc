@@ -18,6 +18,7 @@ if [ "$1" = "" ] ; then
   exit 0
 fi
 
+wazuh login
 
 CURROPT=""
 while [ "$#" -gt 0 ]; do
@@ -35,11 +36,9 @@ if [ "$CMD" = "login" ] ; then
   ssh -p ${MDE_HC_SSH_PORT} -i ${MDE_HC_SSH_ID_RSA} $1
   exit $?
 fi
-
-
-list=$( wazuh var/ossec/bin/agent_groups -l  -q -g $GROUP | grep "ID:"  | awk '{ print $4 }' )
+list=$(wazuh cmd "/agents?group=${GROUP}&select=name" | jq -M '.data.affected_items[].name' | sed -e 's/"//g' )
+#echo "$list"
 for i in $list ; do
-  i=${i%.}
   timeout 0.1 ping -c1 $i >/dev/null 2>&1 
   if [ "$?" != "0" ] ; then
     #echo "#$i"

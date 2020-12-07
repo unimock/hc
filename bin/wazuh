@@ -1,5 +1,84 @@
 #!/bin/bash
 
-. /opt/hc/etc/config
+if [ ! -f /root/wazuh/config.yml ] ; then
+  mkdir -p /root/wazuh
+  cat <<EOF >/root/wazuh/config.yml
+wazuh:
+  url: https://monitor:55000
+  user: wazuh
+  pass: wazuh
 
-dc -h ${MDE_HC_WAZUH_HOST} docker exec -it ${MDE_HC_WAZUH_NAME} "$*" 
+  docker:
+    host: monitor
+    service: secmon_wazuh_1
+EOF
+fi  
+
+eval $( dc-yml -c /root/wazuh/config.yml )
+
+
+URL="$wazuh_url"
+USER="$wazuh_user:$wazuh_pass"
+
+_login()
+{
+  mkdir -p /root/wazuh
+  curl -s -u $USER -k -X GET "$URL/security/user/authenticate?raw=true" > /root/wazuh/token
+  return $?
+}
+
+_get()
+{
+  TOKEN=$(cat /root/wazuh/token)
+ curl -s -k -X GET "${URL}${1}" -H  "Authorization: Bearer $TOKEN"
+ return $?
+
+}
+
+#########################################################################
+#
+# magic main
+#
+#########################################################################
+
+if [ "$1" = "" ] ; then
+  echo ""
+  echo "usage: `basename $0` login|cmd|console"
+  echo ""
+  echo "docker wazuh container login:"
+ echo ""
+  echo "`basename $0` console  <commands>"
+  echo ""
+  echo "rest interface:"
+  echo ""
+  echo "`basename $0` login                                      # get token"
+  echo "`basename $0` cmd \"/agents/summary/status?pretty\" | jq # Getting /agents/summary/os"
+  echo "`basename $0` cmd \"/?pretty\"                      | jq # Getting default information"
+  echo ""
+  exit 0
+fi
+
+
+if [ "$1" = "console" ] ; then
+  shift
+  if [ "$1" = "" ] ; then 
+    dc -h ${wazuh_docker_host} docker exec -it ${wazuh_docker_service} "bash $*"
+  else
+    dc -h ${wazuh_docker_host} docker exec -it ${wazuh_docker_service} "$*"
+  fi
+  exit $?
+fi
+
+
+if [ "$1" = "login" ] ; then
+  _login
+  exit $?
+fi
+
+
+if [ "$1" = "cmd" ] ; then
+ shift
+ _get "$1"
+fi
+
+
