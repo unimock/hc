@@ -9,6 +9,6 @@ wazuh login
 
 ip=$( wazuh cmd "/agents?name=${HOST}&select=ip&pretty" | jq -M '.data.affected_items[].ip' |sed -e 's/"//g'  )
 
-ssh -o "UserKnownHostsFile=/dev/null"  -o StrictHostKeyChecking=no -p ${MDE_HC_SSH_PORT}  -i ${MDE_HC_SSH_ID_RSA} root@${ip} "$*"
+ssh -q -o "UserKnownHostsFile=/dev/null"  -o StrictHostKeyChecking=no -p ${MDE_HC_SSH_PORT}  -i ${MDE_HC_SSH_ID_RSA} root@${ip} "$*"
 exit $?
 
